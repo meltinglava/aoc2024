@@ -8,8 +8,9 @@ use nom::{
     error::Error,
     multi::separated_list1,
     sequence::separated_pair,
-    Err as NomErr,
 };
+
+use crate::convert_error_to_owned;
 
 #[aoc_generator(day01)]
 pub fn input_generator(input: &str) -> Result<Vec<(u64, u64)>, nom::Err<Error<String>>> {
@@ -21,20 +22,6 @@ pub fn input_generator(input: &str) -> Result<Vec<(u64, u64)>, nom::Err<Error<St
         .map_err(convert_error_to_owned)
 }
 
-/// Convert `nom::Err<Error<&str>>` to `nom::Err<Error<String>>`
-fn convert_error_to_owned(e: NomErr<Error<&str>>) -> NomErr<Error<String>> {
-    match e {
-        NomErr::Incomplete(needed) => NomErr::Incomplete(needed),
-        NomErr::Error(err) => NomErr::Error(Error {
-            input: err.input.to_owned(),
-            code: err.code,
-        }),
-        NomErr::Failure(err) => NomErr::Failure(Error {
-            input: err.input.to_owned(),
-            code: err.code,
-        }),
-    }
-}
 
 #[aoc(day01, part1)]
 fn part1(input: &[(u64, u64)]) -> u64 {
