@@ -13,15 +13,9 @@ use crate::convert_error_to_owned;
 
 #[aoc_generator(day02)]
 pub fn input_generator(input: &str) -> Result<Vec<Vec<i64>>, nom::Err<Error<String>>> {
-    separated_list1(
-        newline,
-        separated_list1(
-            tag(" "),
-            complete::i64
-        ),
-    )(input)
-    .map(|(_, v)| v)
-    .map_err(convert_error_to_owned)
+    separated_list1(newline, separated_list1(tag(" "), complete::i64))(input)
+        .map(|(_, v)| v)
+        .map_err(convert_error_to_owned)
 }
 
 #[aoc(day02, part1)]

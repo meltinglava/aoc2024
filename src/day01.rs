@@ -18,10 +18,9 @@ pub fn input_generator(input: &str) -> Result<Vec<(u64, u64)>, nom::Err<Error<St
         newline,
         separated_pair(complete::u64, tag("   "), complete::u64),
     )(input)
-        .map(|(_, o)| o)
-        .map_err(convert_error_to_owned)
+    .map(|(_, o)| o)
+    .map_err(convert_error_to_owned)
 }
-
 
 #[aoc(day01, part1)]
 fn part1(input: &[(u64, u64)]) -> u64 {
