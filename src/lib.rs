@@ -5,6 +5,7 @@ use nom::{error::Error, Err as NomErr};
 mod day01;
 mod day02;
 mod day03;
+mod day04;
 
 extern crate aoc_runner;
 
@@ -12,6 +13,8 @@ extern crate aoc_runner;
 extern crate aoc_runner_derive;
 
 aoc_lib! { year = 2024 }
+
+pub mod grid;
 
 /// Convert `nom::Err<Error<&str>>` to `nom::Err<Error<String>>`
 pub fn convert_error_to_owned(e: NomErr<Error<&str>>) -> NomErr<Error<String>> {
