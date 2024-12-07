@@ -110,16 +110,29 @@ impl Direction {
         ]
     }
 
+    pub fn right_turn(&self) -> Direction {
+        match self {
+            North => East,
+            East => South,
+            South => West,
+            West => North,
+            NorthEast => SouthEast,
+            SouthEast => SouthWest,
+            SouthWest => NorthWest,
+            NorthWest => NorthEast,
+        }
+    }
+
     pub fn cardinal() -> [Direction; 4] {
         [North, East, South, West]
     }
 
-    pub fn step<const N: usize>(&self, pos: (usize, usize)) -> Option<(usize, usize)> {
+    pub fn step(&self, pos: (usize, usize), bound: usize) -> Option<(usize, usize)> {
         match self {
             North => Some((pos.0, pos.1.checked_sub(1)?)),
             South => {
                 let added = pos.1 + 1;
-                if added < N {
+                if added < bound {
                     Some((pos.0, added))
                 } else {
                     None
@@ -127,7 +140,7 @@ impl Direction {
             }
             East => {
                 let added = pos.0 + 1;
-                if added < N {
+                if added < bound {
                     Some((added, pos.1))
                 } else {
                     None
@@ -136,7 +149,7 @@ impl Direction {
             West => Some((pos.0.checked_sub(1)?, pos.1)),
             NorthEast => {
                 let added = pos.0 + 1;
-                if added < N {
+                if added < bound {
                     Some((added, pos.1.checked_sub(1)?))
                 } else {
                     None
@@ -145,7 +158,7 @@ impl Direction {
             SouthEast => {
                 let added = pos.0 + 1;
                 let added2 = pos.1 + 1;
-                if added < N && added2 < N {
+                if added < bound && added2 < bound {
                     Some((added, added2))
                 } else {
                     None
@@ -154,7 +167,7 @@ impl Direction {
             SouthWest => {
                 let added = pos.0.checked_sub(1)?;
                 let added2 = pos.1 + 1;
-                if added2 < N {
+                if added2 < bound {
                     Some((added, added2))
                 } else {
                     None
@@ -162,7 +175,7 @@ impl Direction {
             }
             NorthWest => {
                 let added = pos.0.checked_sub(1)?;
-                if added < N {
+                if added < bound {
                     Some((added, pos.1.checked_sub(1)?))
                 } else {
                     None

@@ -38,7 +38,7 @@ fn part1<const N: usize>(grid: &Grid<N, char>) -> usize {
                         .iter()
                         .map(|search| {
                             let found = grid.get(search_pos?)?;
-                            search_pos = dir.step::<N>(search_pos?);
+                            search_pos = dir.step(search_pos?, N);
                             Some(found == search)
                         })
                         .all(|x| x == Some(true));
@@ -62,8 +62,8 @@ fn part2<const N: usize>(grid: &Grid<N, char>) -> usize {
             directions
                 .iter()
                 .map(|dir| {
-                    let direction = grid.get(dir.step::<N>(*pos)?)?;
-                    let opposite = grid.get(dir.not().step::<N>(*pos)?)?;
+                    let direction = grid.get(dir.step(*pos, N)?)?;
+                    let opposite = grid.get(dir.not().step(*pos, N)?)?;
                     Some(
                         direction == &'M' && opposite == &'S'
                             || direction == &'S' && opposite == &'M',
