@@ -1,15 +1,30 @@
 use std::collections::VecDeque;
 
-use nom::{bytes::complete::tag, character::complete, multi::separated_list1, sequence::separated_pair, IResult};
+use nom::{
+    bytes::complete::tag, character::complete, multi::separated_list1, sequence::separated_pair,
+    IResult,
+};
 
 struct Equation {
     target: u64,
-    numbers: VecDeque<u64>
+    numbers: VecDeque<u64>,
 }
 
-fn parse_equation(input: &str) -> IResult<&str, Equation>{
-    separated_pair(complete::u64, tag(": "), separated_list1(tag(" "), complete::u64))(input)
-        .map(|(rest, (target, numbers))| (rest, Equation{target, numbers: numbers.into_iter().collect()}))
+fn parse_equation(input: &str) -> IResult<&str, Equation> {
+    separated_pair(
+        complete::u64,
+        tag(": "),
+        separated_list1(tag(" "), complete::u64),
+    )(input)
+    .map(|(rest, (target, numbers))| {
+        (
+            rest,
+            Equation {
+                target,
+                numbers: numbers.into_iter().collect(),
+            },
+        )
+    })
 }
 
 fn parse_input(input: &str) -> IResult<&str, Vec<Equation>> {
@@ -33,11 +48,17 @@ fn solvable_part1(equation: &Equation) -> bool {
     let second = values.front().unwrap();
     let mut adding = values.clone();
     *adding.front_mut().unwrap() = first + second;
-    if solvable_part1(&Equation{target: equation.target, numbers: adding}) {
+    if solvable_part1(&Equation {
+        target: equation.target,
+        numbers: adding,
+    }) {
         true
     } else {
         *values.front_mut().unwrap() = first * second;
-        solvable_part1(&Equation{target: equation.target, numbers: values})
+        solvable_part1(&Equation {
+            target: equation.target,
+            numbers: values,
+        })
     }
 }
 
@@ -53,16 +74,25 @@ fn solvable_part2(equation: &Equation) -> bool {
     let second = values.front().unwrap();
     let mut adding = values.clone();
     *adding.front_mut().unwrap() = first + second;
-    if solvable_part2(&Equation{target: equation.target, numbers: adding}) {
+    if solvable_part2(&Equation {
+        target: equation.target,
+        numbers: adding,
+    }) {
         true
     } else {
         let mut multiplying = values.clone();
         *multiplying.front_mut().unwrap() = first * second;
-        if solvable_part2(&Equation{target: equation.target, numbers: multiplying}) {
+        if solvable_part2(&Equation {
+            target: equation.target,
+            numbers: multiplying,
+        }) {
             true
         } else {
             *values.front_mut().unwrap() = concatinate(first, *second);
-            solvable_part2(&Equation{target: equation.target, numbers: values})
+            solvable_part2(&Equation {
+                target: equation.target,
+                numbers: values,
+            })
         }
     }
 }
@@ -95,7 +125,7 @@ mod test_day07 {
     use super::*;
     use indoc::indoc;
 
-    const INPUT: &str = indoc!{"
+    const INPUT: &str = indoc! {"
         190: 10 19
         3267: 81 40 27
         83: 17 5
