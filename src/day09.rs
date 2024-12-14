@@ -1,11 +1,13 @@
 use aoc_runner_derive::{aoc, aoc_generator};
 
-use std::{convert::identity, iter::repeat};
+use std::{collections::{HashMap, VecDeque}, convert::identity, iter::repeat};
 
 type Disk = Vec<Option<usize>>;
 type DiskSlice = [Option<usize>];
 
-#[aoc_generator(day09)]
+const EXTRA: [usize; 10] = [0, 0, 1, 3, 6, 10, 15, 21, 28, 36];
+
+#[aoc_generator(day09, part1)]
 fn parse_input(input: &str) -> Disk {
     let mut value = true;
     let mut bit_values = 0..;
@@ -25,6 +27,47 @@ fn parse_input(input: &str) -> Disk {
         .collect()
 }
 
+#[derive(Debug, Clone, Copy)]
+struct Section {
+    start: usize,
+    length: usize,
+    id: usize,
+}
+
+impl Section {
+    fn score(&self) -> usize {
+        (self.start .. self.start + self.length).sum::<usize>() * (self.id)
+    }
+}
+
+type Sections = (VecDeque<Section>, HashMap<usize, VecDeque<Section>>);
+
+#[aoc_generator(day09, part2)]
+fn parse_input_p2(input: &str) -> Sections {
+    let mut pos = 0;
+    input
+        .chars()
+        .map(|c| c.to_digit(10).unwrap() as usize)
+        .enumerate()
+        .fold(
+            (VecDeque::new(), HashMap::new()),
+            |(mut disk, mut free), (index, size)| {
+                let section = Section {
+                    start: pos,
+                    length: size,
+                    id: index / 2,
+                };
+                pos += size;
+                if index % 2 == 0 {
+                    disk.push_back(section);
+                } else {
+                    free.entry(size).or_default().push_back(section);
+                };
+                (disk, free)
+            },
+        )
+}
+
 fn compact_disk_p1(d: &mut DiskSlice) {
     let mut left = 0;
     let mut right = d.len() - 1;
@@ -40,7 +83,8 @@ fn compact_disk_p1(d: &mut DiskSlice) {
     }
 }
 
-fn compact_disk_p2(d: &mut DiskSlice) {
+
+fn _compact_disk_p2(d: &mut DiskSlice) {
     // Initialize the `right` pointer to the last index of the slice.
     let mut right = d.len() - 1;
 
@@ -108,15 +152,35 @@ fn part1(input: &DiskSlice) -> usize {
 }
 
 #[aoc(day09, part2)]
-fn part2(input: &DiskSlice) -> usize {
-    let mut disk: Disk = input.to_vec();
-    compact_disk_p2(&mut disk);
-    disk
-        .into_iter()
-        .enumerate()
-        .filter_map(|(i, o)| o.map(|v| (i, v)))
-        .map(|(i, o)| i * o)
-        .sum()
+fn part2(disk: &Sections) -> usize {
+    let (mut disk, mut free) = disk.clone();
+    for section in disk.iter_mut().rev() {
+        let find_candidate = (section.length..=9)
+            .filter_map(|size| free.get(&size).map(VecDeque::front).flatten())
+            .copied()
+            .min_by_key(|s| s.start);
+        let candidate = match find_candidate {
+            Some(s) => s,
+            None => {
+                continue;
+            }
+        };
+        let candidate = free.get_mut(&candidate.length).unwrap().pop_front().unwrap().clone();
+        if candidate.start > section.start {
+            continue;
+        }
+        section.start = candidate.start;
+        if candidate.length > section.length {
+            let e = free.entry(candidate.length - section.length).or_default();
+            let p = e.binary_search_by_key(&(candidate.start + candidate.length), |s| s.start).unwrap_err();
+            e.insert(p, Section {
+                start: candidate.start + section.length,
+                length: candidate.length - section.length,
+                id: candidate.id,
+            });
+        }
+    }
+    disk.iter().map(Section::score).sum()
 }
 
 #[cfg(test)]
@@ -154,17 +218,8 @@ mod test_day09 {
     }
 
     #[test]
-    fn test_compact_p2() {
-        let mut parsed = parse_input(EXAMPLE);
-        let expected = "00992111777.44.333....5555.6666.....8888..";
-        compact_disk_p2(&mut parsed);
-        let parsed_str = print_disk(&parsed);
-        assert_eq!(parsed_str, expected);
-    }
-
-    #[test]
     fn test_part2() {
-        let parsed = parse_input(EXAMPLE);
+        let parsed = parse_input_p2(EXAMPLE);
         let part2_result = part2(&parsed);
         assert_eq!(part2_result, 2858);
     }
@@ -173,7 +228,7 @@ mod test_day09 {
     fn test_p2_value() {
         let correct = 6239783302560;
         //            6239783431260;
-        let parsed = parse_input(include_str!("../input/2024/day9.txt").trim());
+        let parsed = parse_input_p2(include_str!("../input/2024/day9.txt").trim());
         let part2_result = part2(&parsed);
         assert_eq!(part2_result, correct);
     }
