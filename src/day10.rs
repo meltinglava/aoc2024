@@ -29,15 +29,15 @@ fn input_generator<const N: usize>(input: &str) -> Result<Grid<N, usize>, String
     }
 }
 
-fn step_to_nine<const N: usize>(grid: &Grid<N, usize>, pos: (usize, usize), value: usize, tailHeads: &mut HashSet<(usize, usize)>) -> usize {
+fn step_to_nine<const N: usize>(grid: &Grid<N, usize>, pos: (usize, usize), value: usize, tail_heads: &mut HashSet<(usize, usize)>) -> usize {
     if grid[pos] == 9 && value == 9 {
-        tailHeads.insert(pos);
+        tail_heads.insert(pos);
         return 1;
     } else if grid[pos] != value {
         return 0;
     }
     Direction::cardinal().iter().filter_map(|d| d.step(pos, N)).map(|dir| {
-        step_to_nine(grid, dir, value + 1, tailHeads)
+        step_to_nine(grid, dir, value + 1, tail_heads)
     })
         .sum()
 }
