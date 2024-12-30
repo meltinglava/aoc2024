@@ -29,35 +29,45 @@ fn input_generator<const N: usize>(input: &str) -> Result<Grid<N, usize>, String
     }
 }
 
-fn step_to_nine<const N: usize>(grid: &Grid<N, usize>, pos: (usize, usize), value: usize, tail_heads: &mut HashSet<(usize, usize)>) -> usize {
+fn step_to_nine<const N: usize>(
+    grid: &Grid<N, usize>,
+    pos: (usize, usize),
+    value: usize,
+    tail_heads: &mut HashSet<(usize, usize)>,
+) -> usize {
     if grid[pos] == 9 && value == 9 {
         tail_heads.insert(pos);
         return 1;
     } else if grid[pos] != value {
         return 0;
     }
-    Direction::cardinal().iter().filter_map(|d| d.step(pos, N)).map(|dir| {
-        step_to_nine(grid, dir, value + 1, tail_heads)
-    })
+    Direction::cardinal()
+        .iter()
+        .filter_map(|d| d.step(pos, N))
+        .map(|dir| step_to_nine(grid, dir, value + 1, tail_heads))
         .sum()
 }
 
-fn step_to_nine_part2<const N: usize>(grid: &Grid<N, usize>, pos: (usize, usize), value: usize) -> usize {
+fn step_to_nine_part2<const N: usize>(
+    grid: &Grid<N, usize>,
+    pos: (usize, usize),
+    value: usize,
+) -> usize {
     if grid[pos] == 9 && value == 9 {
         return 1;
     } else if grid[pos] != value {
         return 0;
     }
-    Direction::cardinal().iter().filter_map(|d| d.step(pos, N)).map(|dir| {
-        step_to_nine_part2(grid, dir, value + 1)
-    })
+    Direction::cardinal()
+        .iter()
+        .filter_map(|d| d.step(pos, N))
+        .map(|dir| step_to_nine_part2(grid, dir, value + 1))
         .sum()
 }
 
 #[aoc(day10, part1)]
 fn part1<const N: usize>(grid: &Grid<N, usize>) -> usize {
-    grid
-        .iter()
+    grid.iter()
         .filter(|(_, &v)| v == 0)
         .map(|(pos, _)| {
             let mut set = HashSet::new();
@@ -69,12 +79,9 @@ fn part1<const N: usize>(grid: &Grid<N, usize>) -> usize {
 
 #[aoc(day10, part2)]
 fn part2<const N: usize>(grid: &Grid<N, usize>) -> usize {
-    grid
-        .iter()
+    grid.iter()
         .filter(|(_, &v)| v == 0)
-        .map(|(pos, _)| {
-            step_to_nine_part2(grid, pos, 0)
-        })
+        .map(|(pos, _)| step_to_nine_part2(grid, pos, 0))
         .sum()
 }
 

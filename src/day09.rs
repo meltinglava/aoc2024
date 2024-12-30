@@ -1,11 +1,12 @@
 use aoc_runner_derive::{aoc, aoc_generator};
 
-use std::{collections::{HashMap, VecDeque}, convert::identity, iter::repeat};
+use std::{
+    collections::{HashMap, VecDeque},
+    iter::repeat,
+};
 
 type Disk = Vec<Option<usize>>;
 type DiskSlice = [Option<usize>];
-
-const EXTRA: [usize; 10] = [0, 0, 1, 3, 6, 10, 15, 21, 28, 36];
 
 #[aoc_generator(day09, part1)]
 fn parse_input(input: &str) -> Disk {
@@ -21,8 +22,7 @@ fn parse_input(input: &str) -> Disk {
                 None
             };
             value = !value;
-            repeat(v)
-                .take(d)
+            repeat(v).take(d)
         })
         .collect()
 }
@@ -36,7 +36,7 @@ struct Section {
 
 impl Section {
     fn score(&self) -> usize {
-        (self.start .. self.start + self.length).sum::<usize>() * (self.id)
+        (self.start..self.start + self.length).sum::<usize>() * (self.id)
     }
 }
 
@@ -82,7 +82,6 @@ fn compact_disk_p1(d: &mut DiskSlice) {
         left += 1;
     }
 }
-
 
 fn _compact_disk_p2(d: &mut DiskSlice) {
     // Initialize the `right` pointer to the last index of the slice.
@@ -143,9 +142,8 @@ fn _compact_disk_p2(d: &mut DiskSlice) {
 fn part1(input: &DiskSlice) -> usize {
     let mut disk: Disk = input.to_vec();
     compact_disk_p1(&mut disk);
-    disk
-        .into_iter()
-        .filter_map(identity)
+    disk.into_iter()
+        .flatten()
         .enumerate()
         .map(|(i, o)| i * o)
         .sum()
@@ -156,7 +154,7 @@ fn part2(disk: &Sections) -> usize {
     let (mut disk, mut free) = disk.clone();
     for section in disk.iter_mut().rev() {
         let find_candidate = (section.length..=9)
-            .filter_map(|size| free.get(&size).map(VecDeque::front).flatten())
+            .filter_map(|size| free.get(&size).and_then(VecDeque::front))
             .copied()
             .min_by_key(|s| s.start);
         let candidate = match find_candidate {
@@ -165,19 +163,28 @@ fn part2(disk: &Sections) -> usize {
                 continue;
             }
         };
-        let candidate = free.get_mut(&candidate.length).unwrap().pop_front().unwrap().clone();
+        let candidate = free
+            .get_mut(&candidate.length)
+            .unwrap()
+            .pop_front()
+            .unwrap();
         if candidate.start > section.start {
             continue;
         }
         section.start = candidate.start;
         if candidate.length > section.length {
             let e = free.entry(candidate.length - section.length).or_default();
-            let p = e.binary_search_by_key(&(candidate.start + candidate.length), |s| s.start).unwrap_err();
-            e.insert(p, Section {
-                start: candidate.start + section.length,
-                length: candidate.length - section.length,
-                id: candidate.id,
-            });
+            let p = e
+                .binary_search_by_key(&(candidate.start + candidate.length), |s| s.start)
+                .unwrap_err();
+            e.insert(
+                p,
+                Section {
+                    start: candidate.start + section.length,
+                    length: candidate.length - section.length,
+                    id: candidate.id,
+                },
+            );
         }
     }
     disk.iter().map(Section::score).sum()
@@ -190,7 +197,9 @@ mod test_day09 {
     const EXAMPLE: &str = "2333133121414131402";
 
     fn print_disk(d: &DiskSlice) -> String {
-        d.iter().map(|o| o.map(|v| v.to_string()).unwrap_or(".".to_string())).collect()
+        d.iter()
+            .map(|o| o.map(|v| v.to_string()).unwrap_or(".".to_string()))
+            .collect()
     }
 
     #[test]
